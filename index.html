@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nájemní kniha</title>
+<meta name="description" content="Sdílený deník plateb nájmu s potvrzením od obou stran.">
+<meta name="theme-color" content="#3F7A53">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">NK</span>
+      <span class="brand-text">
+        <strong>Nájemní kniha</strong>
+        <small id="roleLabel">&nbsp;</small>
+      </span>
+    </div>
+    <div class="topbar-actions">
+      <button id="btnRefresh" class="icon-btn" type="button" title="Načíst znovu" aria-label="Načíst znovu" hidden>⟳</button>
+      <button id="btnMenu" class="icon-btn" type="button" title="Nastavení" aria-label="Nastavení">⚙</button>
+    </div>
+  </div>
+  <div id="netbar" class="netbar" hidden>Jsi offline – data se nedají synchronizovat.</div>
+</header>
+
+<main class="wrap">
+
+  <!-- Globální hláška -->
+  <div id="banner" class="banner" hidden role="alert"></div>
+
+  <!-- 1) Nastavení připojení (Client ID + Sheet ID) -->
+  <section id="viewSetup" class="card view" hidden>
+    <h2 class="card-title">Připojení k tabulce</h2>
+    <p class="muted">
+      Appka nemá vlastní server – data si ukládá do tvého Google Sheetu.
+      Obě hodnoty najdeš podle návodu v <code>README.md</code>. Uloží se jen
+      do tohoto prohlížeče.
+    </p>
+    <form id="formSetup" class="form">
+      <label class="field">
+        <span>OAuth Client ID</span>
+        <input id="inClientId" type="text" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="…apps.googleusercontent.com" required>
+      </label>
+      <label class="field">
+        <span>ID tabulky (spreadsheet ID)</span>
+        <input id="inSheetId" type="text" autocomplete="off" spellcheck="false"
+               placeholder="z URL tabulky mezi /d/ a /edit" required>
+      </label>
+      <label class="field">
+        <span>Název listu</span>
+        <input id="inSheetName" type="text" autocomplete="off" spellcheck="false" value="Payments" required>
+      </label>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Uložit</button>
+        <button class="btn btn-ghost" id="btnSetupCancel" type="button" hidden>Zpět</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 2) Výběr role -->
+  <section id="viewRole" class="card view" hidden>
+    <h2 class="card-title">Kdo jsi na tomhle zařízení?</h2>
+    <p class="muted">
+      Volba platí jen pro tenhle telefon/prohlížeč. Určuje, kterou stranu
+      můžeš potvrzovat. Později ji změníš v nastavení.
+    </p>
+    <div class="role-grid">
+      <button class="role-btn" type="button" data-role="landlord">
+        <span class="role-emoji" aria-hidden="true">🔑</span>
+        <strong>Pronajímatel</strong>
+        <small>Byt pronajímám</small>
+      </button>
+      <button class="role-btn" type="button" data-role="tenant">
+        <span class="role-emoji" aria-hidden="true">🏠</span>
+        <strong>Podnájemník</strong>
+        <small>V bytě bydlím</small>
+      </button>
+    </div>
+  </section>
+
+  <!-- 3) Přihlášení -->
+  <section id="viewAuth" class="card view" hidden>
+    <h2 class="card-title">Přihlas se Google účtem</h2>
+    <p class="muted">
+      Bez přihlášení appka nemůže číst ani zapisovat do tabulky. Přihlaš se
+      účtem, který má k tabulce přístup.
+    </p>
+    <button id="btnSignIn" class="btn btn-primary btn-wide" type="button">Přihlásit se Google účtem</button>
+    <p class="fineprint">
+      Token zůstává jen v paměti této stránky a po hodině vyprší – pak se
+      přihlásíš znovu.
+    </p>
+  </section>
+
+  <!-- 4) Hlavní obrazovka -->
+  <section id="viewApp" class="view" hidden>
+
+    <div class="stats">
+      <div class="stat stat-done">
+        <span class="stat-num" id="statDone">0</span>
+        <span class="stat-label">potvrzeno oběma</span>
+      </div>
+      <div class="stat stat-wait">
+        <span class="stat-num" id="statWait">0</span>
+        <span class="stat-label">čeká na potvrzení</span>
+      </div>
+      <div class="stat stat-sum">
+        <span class="stat-num" id="statSum">—</span>
+        <span class="stat-label">celkem potvrzeno</span>
+      </div>
+    </div>
+
+    <details class="card add-card" id="addCard">
+      <summary class="add-summary"><span class="plus" aria-hidden="true">+</span> Nový záznam</summary>
+      <form id="formEntry" class="form">
+        <div class="form-row">
+          <label class="field">
+            <span>Měsíc</span>
+            <input id="inMonth" type="month" required>
+          </label>
+          <label class="field">
+            <span>Částka (Kč)</span>
+            <input id="inAmount" type="number" inputmode="numeric" min="0" step="1" placeholder="nepovinné">
+          </label>
+        </div>
+        <label class="field">
+          <span>Poznámka</span>
+          <input id="inNote" type="text" maxlength="80" placeholder="nepovinné, max 80 znaků">
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit" id="btnAdd">Zapsat do knihy</button>
+        </div>
+      </form>
+    </details>
+
+    <div id="list" class="list"></div>
+
+    <div id="empty" class="empty" hidden>
+      <div class="empty-mark" aria-hidden="true">✎</div>
+      <h2>Kniha je zatím prázdná</h2>
+      <p>
+        Přidej první měsíc tlačítkem <strong>Nový záznam</strong>. Záznam se
+        uloží do sdíleného Google Sheetu a druhá strana ho uvidí, až si appku
+        otevře. Platba je uzavřená, teprve když ji potvrdí obě strany.
+      </p>
+    </div>
+
+    <p class="fineprint" id="syncInfo">&nbsp;</p>
+  </section>
+
+</main>
+
+<!-- Nastavení (jednoduchý sheet zespodu) -->
+<div id="menu" class="menu-backdrop" hidden>
+  <div class="menu" role="dialog" aria-modal="true" aria-label="Nastavení">
+    <h2 class="card-title">Nastavení</h2>
+    <p class="muted" id="menuAccount">&nbsp;</p>
+    <button class="btn btn-ghost btn-wide" type="button" id="btnChangeRole">Změnit roli</button>
+    <button class="btn btn-ghost btn-wide" type="button" id="btnChangeConn">Změnit připojení k tabulce</button>
+    <button class="btn btn-ghost btn-wide" type="button" id="btnOpenSheet">Otevřít tabulku v Google Sheets</button>
+    <button class="btn btn-ghost btn-wide" type="button" id="btnSignOut">Odhlásit se</button>
+    <button class="btn btn-wide" type="button" id="btnMenuClose">Zavřít</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="config.js"></script>
+<script src="sheets.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
