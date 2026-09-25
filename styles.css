@@ -258,6 +258,38 @@ input:focus-visible, .btn:focus-visible, .icon-btn:focus-visible,
 @media (prefers-color-scheme: dark) { .btn-primary { color: #16211A; } }
 .btn-primary:hover { filter: brightness(1.06); }
 
+/* Tlačítko "Přihlásit se přes Google" podle brand guidelines:
+   výška 40px, Roboto, bílá varianta ve světlém a tmavá ve tmavém režimu. */
+.gsi-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #747775;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #1F1F1F;
+  font-family: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  cursor: pointer;
+}
+.gsi-btn:hover:not(:disabled) { background: #F8F9FA; box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.gsi-btn:active:not(:disabled) { background: #F1F3F4; }
+.gsi-btn:disabled { opacity: .6; cursor: default; }
+.gsi-btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.gsi-icon { display: flex; flex: none; }
+
+@media (prefers-color-scheme: dark) {
+  .gsi-btn { background: #131314; color: #E3E3E3; border-color: #8E918F; }
+  .gsi-btn:hover:not(:disabled) { background: #1E1F20; box-shadow: none; }
+  .gsi-btn:active:not(:disabled) { background: #282A2C; }
+}
+
 .btn-ghost { background: transparent; }
 .btn-wide { width: 100%; }
 .btn-sm { font-size: 13.5px; min-height: 36px; padding: 6px 12px; }

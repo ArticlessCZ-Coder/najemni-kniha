@@ -5,7 +5,7 @@
    Když appku změníš, zvyš CACHE_VERSION – jinak si telefony můžou držet
    starou verzi. */
 
-var CACHE_VERSION = "najem-v1";
+var CACHE_VERSION = "najem-v2";
 
 var SHELL = [
   "./",

@@ -56,10 +56,11 @@ Google Cloud projektu), bod 6 pak každý na svém telefonu.
      `.apps.googleusercontent.com`). **Client secret ignoruj**, ten tahle
      appka nepoužívá a nikam ho nedávej.
 
-> Ve stavu *Testing* vyprší uživatelům přihlášení po 7 dnech a musí ho jednou
-> za čas zopakovat. Pro dva lidi to nevadí. Při přihlašování Google ukáže
-> varování „Google hasn't verified this app“ – dej **Advanced → Go to Nájemní
-> kniha (unsafe)**. Je to tvoje vlastní appka, je to v pořádku.
+> Ve stavu *Testing* ukáže Google při prvním přihlášení varování „Google hasn't
+> verified this app“ – dej **Advanced → Go to Nájemní kniha (unsafe)**. Je to
+> tvoje vlastní appka, je to v pořádku. (Známé omezení *Testing* režimu, že
+> přihlášení vyprší po 7 dnech, se týká refresh tokenů – ty tahle appka vůbec
+> nepoužívá, takže se jí netýká.)
 
 ### 2. Povolit Google Sheets API
 
@@ -158,6 +159,29 @@ Tohle udělá každý na svém zařízení:
 
 Na PC je to stejné, jen krok 5 vynecháš (nebo použiješ ikonu instalace v
 adresním řádku Chrome).
+
+#### Co musí udělat podnájemník
+
+**Nic v Google Cloud Console.** Ta je čistě věc vlastníka projektu. Podnájemník
+jen otevře URL appky, vloží Client ID a Sheet ID (pošli mu je zprávou, nejsou
+tajné), vybere roli *Podnájemník* a proklikne přihlašovací popup od Google.
+
+Aby mu přihlášení prošlo, musíš ty jednorázově zajistit dvě věci:
+
+1. jeho Google e-mail je v **Test users** na OAuth consent screenu (krok 1),
+2. má **Sheet nasdílený jako Editor** (krok 4).
+
+Bez prvního ho Google odmítne s „access blocked / app not verified“, bez
+druhého se přihlásí, ale appka mu ukáže „Nemáš přístup k tabulce“.
+
+#### Jak přihlášení vypadá
+
+Appka používá standardní Google popup s výběrem účtu – ten samý, jaký znáš z
+jiných webů. Při startu se nejdřív zkouší tiché přihlášení (`prompt: 'none'`),
+takže když už máš v prohlížeči Google session a jednou jsi přístup povolil,
+naskočí appka rovnou bez okna. Popup se otevře jen tehdy, když je opravdu
+potřeba – a vždy až po kliknutí na tlačítko, aby ho neblokoval blokátor
+vyskakovacích oken.
 
 ### Lokální testování
 

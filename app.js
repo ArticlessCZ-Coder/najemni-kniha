@@ -433,8 +433,11 @@
 
   function doSignIn() {
     var btn = $("btnSignIn");
+    // Pozor: měníme jen text uvnitř, ne celé tlačítko – jinak bychom smazali
+    // logo Google.
+    var label = btn.querySelector(".gsi-text");
     btn.disabled = true;
-    btn.textContent = "Otevírám přihlášení…";
+    label.textContent = "Otevírám přihlášení…";
     clearBanner();
 
     Sheets.signIn(true).then(function () {
@@ -448,7 +451,7 @@
         (err && err.message ? " (" + err.message + ")" : ""));
     }).then(function () {
       btn.disabled = false;
-      btn.textContent = "Přihlásit se Google účtem";
+      label.textContent = "Přihlásit se přes Google";
     });
   }
 
